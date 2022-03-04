@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+PAGE_BASE="$1"
+PAGE_BEGIN="$2"
+PAGE_END="$3"
+
+for page in $(seq $PAGE_BEGIN $PAGE_END); do
+    curl "$PAGE_BASE$page" -H 'x-requested-with: XMLHttpRequest' --compressed --silent | \
+        hxnormalize -x | \
+        hxselect -s "\n" "div.forum-profile__content-block-active-block > div > p > a:nth-child(1)::attr(href)" | \
+        sed "s/[^0-9]\+//g"
+done
+
