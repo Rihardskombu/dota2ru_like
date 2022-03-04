@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 PAGE_BASE="$1"
 PAGE_BEGIN="$2"
