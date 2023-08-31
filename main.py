@@ -5,56 +5,51 @@ import requests
 import random
 from datetime import datetime
 
-data = '{"login":"adsky","password":"123qwe","silent":false,"remember":true,' \
-       '"referer":"https://dota2.ru/"} '
-s = requests.Session()
-
-
 headers = {'content-type': 'application/json',
            'x-requested-with': 'XMLHttpRequest',
            'Content-Length': '115',
            'Connection': 'keep-alive',
            'Host': 'dota2.ru',
-           'User-Agent': 'PostmanRuntime/7.29.0',
+           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
            'Accept': '*/*',
            'Accept-Encoding': 'gzip, deflate, br'}
-url = 'https://dota2.ru/forum/api/user/auth'
-r2 = s.get(url, data=data, headers=headers)
 
-print(r2.status_code)
-print(r2.reason)
-url2 = 'https://dota2.ru/forum/api/forum/setRateOnPost'
+auth_data = '{"login":"qq@gmail.com","password":"dabi-dabi-dabi-www","silent":false,"remember":true,' \
+            '"referer":"https://dota2.ru/"} '
 
-f = open("posts.txt", "r").read().split("\n")
-existF = open("existinglikedposts.txt", "r")  # .read().split("\n")
-existFarray = existF.read().split("\n")
-existF.close()
+auth_url = 'https://dota2.ru/forum/api/user/auth'  # url 1
+session = requests.Session()
+auth_request = session.get(auth_url, data=auth_data, headers=headers)
+time.sleep(3)  # let's wait for 3 seconds
 
-index = 1
-for elem in f:
-    if np.in1d(elem, existFarray):
-        print("post " + elem + " already was liked. skip it")
+unliked_posts_file = open("unliked_posts_file.txt", "r")
+unliked_posts_array = unliked_posts_file.read().split("\n")
+unliked_posts_file.close()
+
+liked_posts_file = open("liked_posts_file.txt", "r")
+liked_posts_array = liked_posts_file.read().split("\n")
+liked_posts_file.close()
+
+day_limit_max = 30
+day_limit_iterator = 1
+
+for element in unliked_posts_array:
+    if day_limit_iterator == (day_limit_max + 1):
+        break
+    if np.in1d(element, liked_posts_array):
+        print("post " + element + "is already liked. skipping the post")
         continue
     else:
-        existinglikedposts = open('existinglikedposts.txt', 'a')
-        data2 = '{"pid":' + elem + ',"smileId":972}'  # data2 = '{"pid":26601448,"smileId":972}'
-        r3 = s.post(url2, data=data2, headers=headers)
-
-        #url4 = 'https://dota2.ru/forum/posts/' + elem
-        #r4 = s.get(url4, headers=headers)
-        #print(r4.status_code + "|" + r4.reason)
-
-        existinglikedposts.write(elem + "\n")
-        print(r3.status_code)
+        liked_posts_file = open('liked_posts_file.txt', 'a')
+        liked_posts_file.write(element + "\n")
+        liked_posts_file.close()
+        like_url = 'https://dota2.ru/forum/api/forum/setRateOnPost'  # url 2
+        like_data = '{"pid":' + element + ',"smileId":972}'
+        like_request = session.post(like_url, data=like_data, headers=headers)
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         print("Current Time =", current_time)
-        print(r3.reason + " post was liked: " + elem)
-        time.sleep(random.randint(10, 60))
-        existinglikedposts.close()
-        index = index + 1
-        print("_____-----")
-        if index == 14:
-            break
+        print(like_request.reason + " post was liked: " + element + " status:" + str(like_request.status_code))
+        time.sleep(random.randint(30, 60))
 
-
+        day_limit_iterator += 1
